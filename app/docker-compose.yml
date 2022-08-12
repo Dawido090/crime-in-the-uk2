@@ -1,0 +1,94 @@
+version: "3"
+
+services:
+  api:
+    build:
+      context: "./api"
+      dockerfile: "api.dockerfile"
+    container_name: fastapi-api
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --tries=1 --no-verbose http://localhost:8000 || exit 1",
+        ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    environment:
+      PORT: 8000
+    ports:
+      - "8000:8000"
+    restart: "always"
+    depends_on:
+      - postgres_final
+
+  postgres_final:
+    build:
+      context: "./postgres_final"
+      dockerfile: "postgres_final.dockerfile"
+    container_name: postgres_final
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    ports:
+      - "5432:5432"
+    # volumes:
+    #   - sql-final-data:/var/lib/postgres/pgdata
+    environment:
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: abc123
+
+  mongo_raw:
+    build:
+      context: "./mongo_raw"
+      dockerfile: "mongo_raw.dockerfile"
+    container_name: mongo_raw
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'mongosh localhost/web_content -authenticationDatabase admin -u root -p abc123 --eval "db.getCollectionNames()" | grep "articles"',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    # net:
+    ports:
+      - 27018:27017
+      # bindIp : [127.0.0.1,0.0.0.0]
+    # volumes:
+    #   - mongo-raw-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: abc123
+
+  ingestor:
+    build:
+      context: "./ingestor"
+      dockerfile: "ingestor.dockerfile"
+    container_name: ingestor_to_raw
+    healthcheck:
+      test: ["CMD-SHELL", 'ps -aux | grep "pyhton3 /app/main.py"']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: "always"
+    depends_on:
+      - mongo_raw
+
+  data_proc:
+    build:
+      context: "./data_proc"
+      dockerfile: "data_proc.dockerfile"
+    container_name: data_proc
+    restart: "no"
+    depends_on:
+      - mongo_raw
+      - postgres_final
+# volumes:
+#   sql-final-data:
+# mongo-raw-data:
+
