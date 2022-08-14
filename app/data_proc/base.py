@@ -22,10 +22,18 @@ class PostgresDataAccessLayer:
         Column('content',String(),nullable=False)
 
         )
+    most_wanted = Table('most_wanted', metadata,
+        Column('article_id', Integer(), primary_key=True, autoincrement=True),
+        Column('mongo_id', String(), primary_key=True),
+        Column('title',String(60),nullable=False),
+        Column('link',String(),nullable=False),
+        Column('content',String(),nullable=False)
+
+        )
 
     def db_init(self):
-        conn_string = "postgresql+psycopg2://app_user:abc123@postgres_final:5432/postgres"
-        # postgresql+psycopg2://root:abc123@postgres_final/postgres
+        conn_string = "postgresql+psycopg2://app_user:abc123@postgres_final:5432/postgres" #container
+        # conn_string = "postgresql+psycopg2://app_user:abc123@localhost:5432/postgres" #local
         self.engine = create_engine(conn_string)
         self.metadata.create_all(self.engine)
         self.connection = self.engine.connect()
@@ -49,6 +57,6 @@ class MongoDataAccessLayer:
         )
           
     
-# dal = pymongo.MongoClient(host ='127.0.0.1:27018', username = 'root' ,password = 'abc123' )
+# MongoDal = pymongo.MongoClient(host ='127.0.0.1:27018', username = 'root' ,password = 'abc123' )
 MongoDal = MongoDataAccessLayer("mongodb://root:abc123@mongo_raw") #for container
-# dal = DataAccessLayer("mongodb://root:abc123@mongo_raw") #for local tbc
+# MongoDal = MongoDataAccessLayer("mongodb://root:abc123@localhost") #for local tbc
