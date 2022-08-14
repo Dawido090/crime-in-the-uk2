@@ -4,8 +4,8 @@ from .base import dal
 
 app = FastAPI()
 
-if dal.connection == None:
-    dal.db_init()
+# if dal.connection == None:
+#     dal.db_init()
 
 @app.get("/")
 def hello_world():

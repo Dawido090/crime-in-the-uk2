@@ -127,17 +127,63 @@ class PostgresDataProc:
         return result
 
 class Data_Proc_Class:
+    # check what is in postgres
+    # store it's ids or links
+    # get data from mongo and add the ones which aren't available in postgres ad 1) think about adding mongo
+    # requests which returns non equals to records inside postgres
     def __init__(self, mongo_proc, postgres_proc) -> None:
         self.mongo_proc = mongo_proc
         self.postgres_proc = postgres_proc
 
-    def main(self):
+    def get_compare(self):
+        result = []
+        postgres_data = self.postgres_proc.get_article()
         mongo_data = self.mongo_proc.get_articles_data()
-        print(mongo_data)
+        if len(postgres_data) >= 1:
+            post_ids = [x[1] for x in postgres_data]
+            mongo_ids = [str(x['_id']).replace('ObjectId(','').replace(')','') for x in mongo_data]
+            for rec in mongo_data:
+                if str(rec['_id']).replace('ObjectId(','').replace(')','') not in post_ids:
+                    result.append(rec)
+            return result
+        else:
+            return mongo_data
+    
+    def to_postgres(self,data):
+        if len(data) >=1:
+            for i in data:
+                # print(i)
+                self.postgres_proc.add_article(
+                    mongo_id = str(i['_id']).replace('ObjectId(','').replace(')',''),
+                    title = i['title'],
+                    post_date = i['post date'],
+                    link = i['link'],
+                    content = i['content']
+                )
 
+
+    def main(self):
+        while True:
+            time.sleep(15)
+        # postgres_data = self.postgres_proc.get_article()
+        # print(postgres_data)
+        # mongo_data = self.mongo_proc.get_articles_data()
+            compared_data = self.get_compare()
+            self.to_postgres(compared_data)
+        # print(mongo_data[:3])
+        # for i in mongo_data[:1]:
+        #     # print(i)
+        #     self.postgres_proc.add_article(
+        #         mongo_id = str(i['_id']).replace('ObjectId(','').replace(')',''),
+        #         title = i['title'],
+        #         post_date = i['post date'],
+        #         link = i['link'],
+        #         content = i['content']
+        #     )
+# mongo_id:str, title:str, post_date:datetime, link:str, content:str
 
 if __name__ == '__main__':
-    time.sleep(15)
+    time.sleep(10)
     if MongoDal.connection == None:
         MongoDal.mongo_init()
     

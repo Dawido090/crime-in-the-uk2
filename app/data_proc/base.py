@@ -16,7 +16,7 @@ class PostgresDataAccessLayer:
     articles = Table('articles', metadata,
         Column('article_id', Integer(), primary_key=True, autoincrement=True),
         Column('mongo_id', String(), primary_key=True),
-        Column('title',String(60),nullable=False),
+        Column('title',String(),nullable=False),
         Column('post_date',DateTime(),nullable=False),
         Column('link',String(),nullable=False),
         Column('content',String(),nullable=False)
@@ -25,7 +25,7 @@ class PostgresDataAccessLayer:
     most_wanted = Table('most_wanted', metadata,
         Column('article_id', Integer(), primary_key=True, autoincrement=True),
         Column('mongo_id', String(), primary_key=True),
-        Column('title',String(60),nullable=False),
+        Column('title',String(),nullable=False),
         Column('link',String(),nullable=False),
         Column('content',String(),nullable=False)
 
@@ -57,6 +57,5 @@ class MongoDataAccessLayer:
         )
           
     
-# MongoDal = pymongo.MongoClient(host ='127.0.0.1:27018', username = 'root' ,password = 'abc123' )
 MongoDal = MongoDataAccessLayer("mongodb://root:abc123@mongo_raw") #for container
-# MongoDal = MongoDataAccessLayer("mongodb://root:abc123@localhost") #for local tbc
+# MongoDal = MongoDataAccessLayer("mongodb://root:abc123@127.0.0.1:27018") #for local
